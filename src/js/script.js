@@ -5,7 +5,8 @@ const select = {
     templateBook: '#template-book',
   },
   listOf: {
-    list: '.books-list',
+    listBooks: '.books-list',
+    listFilterInput: '.filters',
   },
   attribute: {
     dataId: 'data-id',
@@ -13,6 +14,7 @@ const select = {
   image: {
     coverImage: '.book__image',
     favoriteCoverImage: 'favorite',
+    hidden: 'hidden',
   },
 };
 
@@ -22,9 +24,7 @@ const templates = {
 };
 
 
-const booksList = document.querySelector(select.listOf.list);
-
-
+const booksList = document.querySelector(select.listOf.listBooks);
 
 
 function render(){
@@ -34,15 +34,15 @@ function render(){
     const element = utils.createDOMFromHTML(generatedHTML);
     booksList.appendChild(element);
     console.log('dataSource.books',dataSource.books);
+    console.log('booksList:', booksList);
   }  
 }
 
 render();
+const filters = [];
 
 function initActions() {
   const favoriteBooks = [];
-  const booksImages = booksList.querySelectorAll(select.image.coverImage);
-
   booksList.addEventListener('dblclick', function(event){
     event.preventDefault();   
     console.log(event);
@@ -61,8 +61,49 @@ function initActions() {
       
       
   });
+
+  
+  const filtersList = document.querySelector(select.listOf.listFilterInput);
+  filtersList.addEventListener('click', function(event){
+    console.log('event', event);
+    const clickedElement = event.target;
+    if(clickedElement.tagName === 'INPUT' && clickedElement.type === 'checkbox' && clickedElement.name === 'filter') {
+      console.log('filter value: ', clickedElement.value);
+      if(clickedElement.checked){
+        filters.push(clickedElement);
+        filterBooks();
+      } else {
+        const elementToRemove = filters.indexOf(clickedElement);
+        filters.splice(elementToRemove, 1);
+        filterBooks();
+      }
+      console.log('filters: ', filters);
+    }
+  });
+  
   
 }
 
 
 initActions();
+
+function filterBooks() {
+  
+  for(let data of dataSource.books){
+    let shouldBeHidden = false;
+    for(const input of filters){
+      if(!data.details[input.value]){
+        shouldBeHidden = true;
+        break;
+      }
+    } 
+    const bookImage = booksList.querySelector('.book__image[data-id="' + data.id + '"]');
+    if(shouldBeHidden){
+      bookImage.classList.add(select.image.hidden);
+    } else {
+      bookImage.classList.remove(select.image.hidden);
+    }
+    
+    
+  }
+}
